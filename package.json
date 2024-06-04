@@ -1,0 +1,34 @@
+{
+  "name": "node-addon-api-coroutine",
+  "version": "0.1.0",
+  "description": "Connect JavaScript Promise with C++ coroutine",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "gypfile": false,
+  "peerDependencies": {
+    "node-addon-api": "*"
+  },
+  "devDependencies": {
+    "node-addon-api": "*"
+  },
+  "scripts": {
+    "pretest": "node-gyp rebuild -C test",
+    "test": "node ./test/coroutine.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/toyobayashi/node-addon-api-coroutine.git"
+  },
+  "keywords": [
+    "n-api",
+    "napi",
+    "node-addon-api",
+    "coroutine"
+  ],
+  "author": "toyobayashi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/toyobayashi/node-addon-api-coroutine/issues"
+  },
+  "homepage": "https://github.com/toyobayashi/node-addon-api-coroutine#readme"
+}
