@@ -35,15 +35,15 @@ inline void CoPromise::promise_type::unhandled_exception() const {
   } catch (const Napi::Error& e) {
     deferred_.Reject(e.Value());
   } catch (const std::exception& e) {
-    deferred_.Reject(Napi::Error::New(env_, e.what()).Value());
+    deferred_.Reject(Napi::Error::New(deferred_.Env(), e.what()).Value());
   } catch (const Value& e) {
     deferred_.Reject(e);
   } catch (const std::string& e) {
-    deferred_.Reject(Napi::Error::New(env_, e).Value());
+    deferred_.Reject(Napi::Error::New(deferred_.Env(), e).Value());
   } catch (const char* e) {
-    deferred_.Reject(Napi::Error::New(env_, e).Value());
+    deferred_.Reject(Napi::Error::New(deferred_.Env(), e).Value());
   } catch (...) {
-    deferred_.Reject(Napi::Error::New(env_, "Unknown Error").Value());
+    deferred_.Reject(Napi::Error::New(deferred_.Env(), "Unknown Error").Value());
   }
 #else
   std::rethrow_exception(exception);
@@ -51,8 +51,9 @@ inline void CoPromise::promise_type::unhandled_exception() const {
 }
 
 inline void CoPromise::promise_type::return_value(napi_value value) const {
-  if (env_.IsExceptionPending()) {
-    Reject(env_.GetAndClearPendingException().Value());
+  Napi::Env env = deferred_.Env();
+  if (env.IsExceptionPending()) {
+    Reject(env.GetAndClearPendingException().Value());
   } else {
     Resolve(value);
   }

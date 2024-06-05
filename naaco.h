@@ -77,7 +77,6 @@ class CoPromise::promise_type {
   void Reject(napi_value value) const;
 
  private:
-  Napi::Env env_;
   Deferred deferred_;
 };
 
