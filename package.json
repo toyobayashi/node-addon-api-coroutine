@@ -9,12 +9,15 @@
     "node-addon-api": "*"
   },
   "devDependencies": {
+    "clang-format": "^1.8.0",
     "node-addon-api": "*",
     "node-gyp": "^10.1.0"
   },
   "scripts": {
     "pretest": "node-gyp rebuild -C test",
-    "test": "node ./test/coroutine.js"
+    "test": "node ./test/coroutine.js",
+    "lint": "node tools/clang-format",
+    "lint:fix": "node tools/clang-format --fix"
   },
   "repository": {
     "type": "git",

@@ -1,6 +1,6 @@
 {
   'target_defaults': {
-    'includes': ['../common.gypi'],
+    'includes': ['./common.gypi'],
     'dependencies': [
       "<!(node -p \"require('..').targets\"):node_addon_api_coroutine"
     ],
