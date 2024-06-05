@@ -139,16 +139,18 @@ inline void CoPromise::Awaiter::Fulfill(Napi::Value) {
   handle_.resume();
 }
 
-inline void CoPromise::Awaiter::Reject(Napi::Value reason) {
 #ifdef NAPI_CPP_EXCEPTIONS
+inline void CoPromise::Awaiter::Reject(Napi::Value) {
   handle_.resume();
+}
 #else
+inline void CoPromise::Awaiter::Reject(Napi::Value reason) {
   std::coroutine_handle<promise_type>::from_address(handle_.address())
       .promise()
       .Reject(reason);
   handle_.destroy();
-#endif
 }
+#endif
 
 inline Napi::Value CoPromise::Awaiter::OnFulfill(const Napi::CallbackInfo& info) {
   CoPromise::Awaiter* awaiter = static_cast<CoPromise::Awaiter*>(info.Data());
