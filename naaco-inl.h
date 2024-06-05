@@ -5,7 +5,7 @@ namespace naaco {
 
 template <typename... Args>
 inline CoPromise::promise_type::promise_type(napi_env env, Args&&...)
-    : env_(env), deferred_(CoPromise::Deferred::New(env)) {}
+    : deferred_(env) {}
 
 template <typename... Args>
 inline CoPromise::promise_type::promise_type(Napi::Value value, Args&&...)
@@ -55,11 +55,18 @@ inline void CoPromise::promise_type::return_value(napi_value value) const {
   if (env.IsExceptionPending()) {
     Reject(env.GetAndClearPendingException().Value());
   } else {
-    Resolve(value);
+    if (value == nullptr) {
+      Resolve(env.Undefined());
+    } else {
+      Resolve(value);
+    }
   }
 }
 
 inline CoPromise::Awaiter CoPromise::promise_type::await_transform(Napi::Value value) const NAPI_NOEXCEPT {
+  if (value.IsEmpty()) {
+    return CoPromise::Awaiter(deferred_.Env().Undefined());
+  }
   return CoPromise::Awaiter(value);
 }
 
