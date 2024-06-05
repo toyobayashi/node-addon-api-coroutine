@@ -1,8 +1,9 @@
-const path = require('path');
 const assert = require('assert');
-const { spawnSync } = require('child_process');
 
-function runTestWithBindingPath (buildType, buildPathRoot = process.env.BUILD_PATH || '') {
+async function runTestWithBindingPath (test, buildType, buildPathRoot = process.env.BUILD_PATH || '') {
+  const path = require('path');
+  const { spawnSync } = require('child_process');
+
   buildType = buildType || 'Release';
   const bindings = [
     path.join(buildPathRoot, `./build/${buildType}/binding_cpp20.node`),
@@ -12,15 +13,23 @@ function runTestWithBindingPath (buildType, buildPathRoot = process.env.BUILD_PA
   ].map(it => require.resolve(it));
 
   for (const item of bindings) {
+    console.log(`> node ${__filename} ${item}`)
     const { status } = spawnSync('node', [__filename, item], { stdio: 'inherit' })
-    assert(status === 0)
+    assert.strictEqual(status, 0)
+    console.log()
+  }
+
+  for (const item of bindings) {
+    console.log(`> test("${item}")`)
+    await test(item)
+    console.log()
   }
 }
 
 if (process.argv[2]) {
   test(process.argv[2])
 } else {
-  module.exports = runTestWithBindingPath(undefined, __dirname);
+  module.exports = runTestWithBindingPath(test, undefined, __dirname);
 }
 
 async function test (path) {
