@@ -67,6 +67,10 @@ struct Task {
   struct promise_type {
     String last_error;
     std::list<CompleteCb> list_;
+    napi_env env_;
+    Napi::Promise::Deferred deferred_;
+    promise_type (napi_env env): 
+      last_error(), list_(), env_(env), deferred_(Napi::Promise::Deferred::New(env)) {}
 
     ~promise_type() {
       std::for_each(list_.cbegin(), list_.cend(), [this](CompleteCb f) {
@@ -80,7 +84,14 @@ struct Task {
     std::suspend_never initial_suspend() { return {}; }
     std::suspend_never final_suspend() noexcept { return {}; }
     void unhandled_exception() {}
-    void return_void() {}
+    void return_value(std::tuple<Napi::Value, Napi::Value> result) {
+      Napi::HandleScope scope(env_);
+      Napi::Env env = Napi::Env(env_);
+      Napi::Array arr = Napi::Array::New(env, 2);
+      arr.Set(0u, std::get<0>(result));
+      arr.Set(1u, std::get<1>(result));
+      deferred_.Resolve(arr);
+    }
 
     Awaiter await_transform(Value value) { return {value}; }
 
@@ -99,11 +110,15 @@ struct Task {
 
     std::tuple<Value, Value> await_resume() const {
       const Value* ok = std::get_if<1>(&state_);
-      if (ok) return std::tuple<Value, Value>{*ok, Value()};
+      if (ok) return std::tuple<Value, Value>{*ok, ok->Env().Undefined()};
       const Value* err = std::get_if<2>(&state_);
-      return std::tuple<Value, Value>{Value(), *err};
+      return std::tuple<Value, Value>{err->Env().Undefined(), *err};
     }
   };
+
+  operator napi_value() const {
+    return handle_.promise().deferred_.Promise();
+  }
 
   Task(std::coroutine_handle<promise_type> handle) : handle_(handle) {}
 
@@ -115,17 +130,19 @@ struct Task {
 Task CreateTask(napi_env env) {
   Promise::Deferred deferred = Promise::Deferred::New(env);
   deferred.Reject(Napi::String::New(env, "task error"));
-  co_await deferred.Promise();
+  std::tuple<Value, Value> result = co_await deferred.Promise();
+  co_return result;
 }
 
 CoPromise OtherTypeCoroutine(const CallbackInfo& info) {
   Napi::Env env = info.Env();
   Task task = CreateTask(env);
-  Promise::Deferred deferred = Promise::Deferred::New(env);
-  task.OnComplete([deferred, env](String last_error) {
-    deferred.Resolve(last_error.IsEmpty() ? env.Undefined() : last_error);
+  task.OnComplete([](String last_error) {
+    if (!last_error.IsEmpty()) {
+      std::cerr << last_error.Utf8Value() << std::endl;
+    }
   });
-  co_return deferred.Promise();
+  co_return task;
 }
 
 Object Init(Env env, Object exports) {

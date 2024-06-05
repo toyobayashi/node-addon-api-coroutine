@@ -80,5 +80,5 @@ async function test (path) {
 
   const lastError = await binding.otherTypeCoroutine();
   console.log(lastError)
-  assert.strictEqual(lastError, 'task error');
+  assert.deepStrictEqual(lastError, [undefined, 'task error']);
 }
