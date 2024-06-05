@@ -90,7 +90,6 @@ class CoPromise::Awaiter {
   Napi::Value await_resume() const;
 
  protected:
-  bool enabled_exceptions_;
   std::coroutine_handle<> handle_;
   std::variant<Napi::Value, Napi::Value, Napi::Value> state_;
 

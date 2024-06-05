@@ -71,12 +71,7 @@ inline void CoPromise::promise_type::Reject(napi_value value) const {
 }
 
 inline CoPromise::Awaiter::Awaiter(Value value)
-#ifdef NAPI_CPP_EXCEPTIONS
-    : enabled_exceptions_(true),
-#else
-    : enabled_exceptions_(false),
-#endif
-      handle_(),
+    : handle_(),
       state_(std::in_place_index<0>, value) {
 }
 
@@ -145,14 +140,14 @@ inline void CoPromise::Awaiter::Fulfill(Napi::Value) {
 }
 
 inline void CoPromise::Awaiter::Reject(Napi::Value reason) {
-  if (enabled_exceptions_) {
-    handle_.resume();
-  } else {
-    std::coroutine_handle<promise_type>::from_address(handle_.address())
-        .promise()
-        .Reject(reason);
-    handle_.destroy();
-  }
+#ifdef NAPI_CPP_EXCEPTIONS
+  handle_.resume();
+#else
+  std::coroutine_handle<promise_type>::from_address(handle_.address())
+      .promise()
+      .Reject(reason);
+  handle_.destroy();
+#endif
 }
 
 inline Napi::Value CoPromise::Awaiter::OnFulfill(const Napi::CallbackInfo& info) {
