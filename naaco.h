@@ -83,6 +83,7 @@ class CoPromise::promise_type {
 class CoPromise::Awaiter {
  public:
   Awaiter(Napi::Value value);
+  Awaiter(napi_env env, napi_value value);
 
   bool await_ready() const NAPI_NOEXCEPT;
   void await_suspend(std::coroutine_handle<> handle);

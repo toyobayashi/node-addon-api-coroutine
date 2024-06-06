@@ -78,10 +78,13 @@ inline void CoPromise::promise_type::Reject(napi_value value) const {
   deferred_.Reject(value);
 }
 
-inline CoPromise::Awaiter::Awaiter(Value value)
+inline CoPromise::Awaiter::Awaiter(Napi::Value value)
     : handle_(),
       state_(std::in_place_index<0>, value) {
 }
+
+inline CoPromise::Awaiter::Awaiter(napi_env env, napi_value value)
+    : CoPromise::Awaiter::Awaiter(Napi::Value(env, value)) {}
 
 inline bool CoPromise::Awaiter::await_ready() const NAPI_NOEXCEPT {
   return false;
